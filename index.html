@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CLEAN FUEL | 内臓守護チェッカー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: #F4F2EC; min-height: 100vh; color: #1a1a1a;
+  -webkit-tap-highlight-color: transparent;
+}
+.app { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 48px; }
+
+/* ── ヘッダー ── */
+.header {
+  background: linear-gradient(150deg, #162B20 0%, #1F4A32 60%, #2A6644 100%);
+  padding: 24px 20px 20px; position: sticky; top: 0; z-index: 10;
+}
+.logo-row { display: flex; align-items: center; gap: 14px; }
+.logo-shield {
+  width: 48px; height: 48px; background: rgba(255,255,255,0.13);
+  border-radius: 14px; display: flex; align-items: center;
+  justify-content: center; font-size: 26px; flex-shrink: 0;
+}
+.logo-main {
+  font-family: 'Montserrat', sans-serif; color: #fff;
+  font-size: 22px; font-weight: 900; letter-spacing: 4px; line-height: 1;
+}
+.logo-sub { color: #85C99A; font-size: 10px; letter-spacing: 1.5px; margin-top: 5px; }
+
+/* ── メイン ── */
+.main { padding: 20px 16px 0; }
+
+/* ── タブ ── */
+.tabs { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: nowrap; }
+.tab {
+  flex: 1; padding: 11px 4px; border: 2px solid #DDD8CE;
+  border-radius: 14px; background: #fff; cursor: pointer;
+  font-size: 11px; font-family: 'Noto Sans JP', sans-serif;
+  color: #888; font-weight: 700; transition: all 0.2s;
+  text-align: center; line-height: 1.4;
+}
+.tab.active { border-color: #1F4A32; background: #1F4A32; color: #fff; }
+
+/* ── カード ── */
+.card {
+  background: #fff; border-radius: 18px; padding: 20px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.07); margin-bottom: 16px;
+}
+
+/* ── 撮影ガイド ── */
+.shoot-tips {
+  background: #F0FDF4; border: 1.5px solid #BBF7D0;
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; text-align: left;
+}
+.shoot-tips-title {
+  font-size: 12px; font-weight: 900; color: #166534;
+  letter-spacing: 1px; margin-bottom: 10px;
+}
+.shoot-tip { font-size: 12px; color: #333; line-height: 1.9; }
+
+/* ── アップロードゾーン ── */
+.upload-zone { text-align: center; padding: 8px 0 4px; }
+.upload-emoji { font-size: 40px; margin-bottom: 8px; }
+.upload-title { font-size: 14px; color: #444; font-weight: 700; margin-bottom: 16px; }
+.btn-row { display: flex; gap: 10px; justify-content: center; }
+.btn-attach {
+  background: #1F4A32; color: #fff; border: none;
+  border-radius: 14px; padding: 14px 22px;
+  font-size: 14px; font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700; cursor: pointer; letter-spacing: 0.5px;
+  transition: opacity 0.15s;
+}
+.btn-attach:active { opacity: 0.75; }
+.btn-attach.sub { background: #4A7A5A; }
+
+/* ── プレビュー ── */
+.preview-wrap { position: relative; text-align: center; }
+.preview-img {
+  max-width: 100%; max-height: 220px; border-radius: 12px;
+  object-fit: contain; display: block; margin: 0 auto;
+}
+.btn-reset {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,0.55); color: #fff; border: none;
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  font-size: 12px; font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ── テキスト入力 ── */
+.input-label {
+  display: block; font-size: 12px; font-weight: 900; color: #1F4A32;
+  margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;
+}
+.textarea {
+  width: 100%; border: 1.5px solid #DDD8CE; border-radius: 12px;
+  padding: 14px; font-size: 13px; font-family: 'Noto Sans JP', sans-serif;
+  resize: vertical; outline: none; line-height: 1.7; color: #333; background: #FAFAF8;
+}
+.textarea:focus { border-color: #1F4A32; }
+
+/* ── 添加物リスト ── */
+.bl-intro {
+  font-size: 12px; color: #555; line-height: 1.7; margin-bottom: 16px;
+  background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 12px; padding: 12px 14px;
+}
+.bl-item {
+  background: #fff; border-radius: 16px; padding: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); border-left: 4px solid;
+  margin-bottom: 12px;
+}
+.bl-item-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bl-item-icon   { font-size: 24px; flex-shrink: 0; }
+.bl-item-name   { font-size: 14px; font-weight: 900; line-height: 1.2; }
+.bl-item-organ  {
+  font-size: 10px; color: #fff; font-weight: 700;
+  padding: 2px 8px; border-radius: 10px; display: inline-block; margin-top: 2px;
+}
+.bl-aliases {
+  font-size: 11px; color: #888; margin-bottom: 6px; line-height: 1.6;
+}
+.bl-aliases strong { color: #555; }
+.bl-foods {
+  font-size: 11px; color: #C0392B; background: #FEF2F2;
+  border-radius: 8px; padding: 6px 10px; line-height: 1.6;
+}
+
+/* ── 実行ボタン ── */
+.btn-analyze {
+  width: 100%; background: linear-gradient(135deg, #162B20 0%, #2A6644 100%);
+  color: #fff; border: none; border-radius: 18px; padding: 19px;
+  font-size: 16px; font-family: 'Noto Sans JP', sans-serif; font-weight: 900;
+  cursor: pointer; letter-spacing: 3px; margin-bottom: 22px;
+  box-shadow: 0 6px 24px rgba(26,70,48,0.35); transition: opacity 0.2s;
+}
+.btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── ローディング ── */
+.loading { text-align: center; padding: 32px; }
+.loading-spinner { font-size: 36px; display: block; margin-bottom: 12px; animation: spin 1.2s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; font-weight: 700; color: #555; letter-spacing: 1px; }
+
+/* ── エラー ── */
+.error-card {
+  background: #FEF2F2; border: 1px solid #FECACA; border-radius: 14px;
+  padding: 16px; color: #991B1B; font-size: 13px; margin-bottom: 16px; line-height: 1.7;
+}
+
+/* ── 結果 ── */
+.result-area { display: flex; flex-direction: column; gap: 14px; }
+.status-banner {
+  border-radius: 18px; padding: 20px 22px;
+  display: flex; align-items: center; gap: 16px; color: #fff;
+}
+.status-clean { background: linear-gradient(135deg,#166534,#15803D); }
+.status-high  { background: linear-gradient(135deg,#7F1D1D,#B91C1C); }
+.status-mid   { background: linear-gradient(135deg,#78350F,#B45309); }
+.status-icon  { font-size: 38px; flex-shrink: 0; }
+.status-title { font-size: 15px; font-weight: 900; letter-spacing: 0.5px; line-height: 1.3; }
+.status-sub   { font-size: 11px; opacity: 0.75; margin-top: 5px; }
+.additive-card {
+  background: #fff; border-radius: 18px; padding: 20px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06); border-left: 5px solid;
+}
+.add-header  { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+.add-icon    { font-size: 28px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.add-meta    { flex: 1; min-width: 0; }
+.add-name    { font-size: 17px; font-weight: 900; line-height: 1.2; }
+.add-exact   { font-size: 11px; color: #999; margin-top: 3px; }
+.level-badge {
+  color: #fff; font-size: 10px; font-weight: 900; padding: 4px 10px;
+  border-radius: 20px; white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+}
+.organ-tag {
+  background: #F5F2EC; border-radius: 8px; padding: 8px 14px;
+  font-size: 12px; color: #666; margin-bottom: 12px;
+  display: inline-flex; gap: 6px; align-items: center;
+}
+.damage-text  { font-size: 13px; color: #333; line-height: 1.7; margin-bottom: 14px; }
+.recovery-box {
+  background: linear-gradient(135deg,#ECFDF5,#F0FDF4);
+  border-radius: 14px; padding: 14px 16px; border: 1px solid #BBF7D0;
+}
+.recovery-label {
+  font-size: 10px; font-weight: 900; color: #166534;
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px;
+}
+.recovery-text { font-size: 13px; color: #15803D; line-height: 1.75; }
+.clean-card {
+  background: #fff; border-radius: 18px; padding: 28px 24px;
+  text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.06); border: 2px solid #BBF7D0;
+}
+.clean-icon  { font-size: 52px; margin-bottom: 12px; }
+.clean-title { font-size: 17px; font-weight: 900; color: #166534; margin-bottom: 8px; }
+.clean-text  { font-size: 13px; color: #555; line-height: 1.7; }
+
+/* ── 履歴 ── */
+.history-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.history-title  { font-size: 14px; font-weight: 900; color: #1F4A32; letter-spacing: 1px; }
+.btn-clear-all  {
+  background: none; border: 1px solid #DDD; border-radius: 8px;
+  padding: 6px 12px; font-size: 11px; color: #999; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.history-empty      { text-align: center; padding: 40px 16px; color: #BBB; }
+.history-empty-icon { font-size: 40px; margin-bottom: 10px; }
+.history-empty-text { font-size: 13px; line-height: 1.7; }
+.hist-card {
+  background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  margin-bottom: 12px; overflow: hidden; border-left: 4px solid; cursor: pointer;
+}
+.hist-summary  { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.hist-status-dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.dot-clean  { background: #DCFCE7; }
+.dot-danger { background: #FEE2E2; }
+.dot-warn   { background: #FEF3C7; }
+.hist-meta    { flex: 1; min-width: 0; }
+.hist-product { font-size: 13px; font-weight: 900; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-date    { font-size: 11px; color: #AAA; margin-top: 2px; }
+.hist-badges  { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.hist-badge   { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; color: #fff; }
+.hist-badge-clean { background: #22C55E; }
+.hist-chevron { font-size: 14px; color: #CCC; flex-shrink: 0; transition: transform 0.2s; }
+.hist-chevron.open { transform: rotate(90deg); }
+.hist-detail  { border-top: 1px solid #F0EDE8; padding: 14px 16px 16px; display: none; }
+.hist-detail.open { display: block; }
+.hist-additive-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0; border-bottom: 1px dashed #EEE;
+}
+.hist-additive-row:last-of-type { border-bottom: none; }
+.hist-add-icon { font-size: 20px; flex-shrink: 0; }
+.hist-add-info { flex: 1; }
+.hist-add-name { font-size: 13px; font-weight: 900; }
+.hist-add-exact { font-size: 11px; color: #999; margin-top: 1px; }
+.hist-recovery {
+  background: #F0FDF4; border-radius: 10px; padding: 10px 12px; margin-top: 8px;
+  font-size: 12px; color: #15803D; line-height: 1.6;
+}
+.hist-clean-row { text-align: center; padding: 12px; font-size: 13px; color: #166534; font-weight: 700; }
+.hist-delete-btn {
+  width: 100%; margin-top: 12px; background: none; border: 1px solid #EEE;
+  border-radius: 8px; padding: 8px; font-size: 12px; color: #CCC; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.hist-delete-btn:active { background: #FEF2F2; color: #EF4444; border-color: #FECACA; }
+
+/* ── フッター ── */
+.footer { text-align: center; padding: 24px 16px 0; color: #BBB; font-size: 11px; }
+.footer-brand { font-weight: 700; color: #888; letter-spacing: 1px; }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="header">
+    <div class="logo-row">
+      <div class="logo-shield">🛡️</div>
+      <div>
+        <div class="logo-main">CLEAN FUEL</div>
+        <div class="logo-sub">内臓守護チェッカー for RUIKALOG</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- タブ -->
+    <div class="tabs">
+      <button class="tab active" id="tab-camera"    onclick="switchTab('camera')">📷 写真</button>
+      <button class="tab"        id="tab-text"      onclick="switchTab('text')">✏️ テキスト</button>
+      <button class="tab"        id="tab-blacklist" onclick="switchTab('blacklist')">⚠️ 添加物一覧</button>
+      <button class="tab"        id="tab-history"   onclick="switchTab('history')">📋 履歴</button>
+    </div>
+
+    <!-- ── 写真パネル ── -->
+    <div id="panel-camera">
+      <div class="card">
+
+        <!-- 撮影ガイド -->
+        <div class="shoot-tips">
+          <div class="shoot-tips-title">📋 きれいに読み取るコツ</div>
+          <div class="shoot-tip">✅ <strong>「原材料名」の欄だけ</strong>をアップで撮る</div>
+          <div class="shoot-tip">✅ 蛍光灯・窓光が当たる<strong>明るい場所</strong>で撮る</div>
+          <div class="shoot-tip">✅ カメラをぴたっと止めて<strong>ピントが合ってからシャッター</strong></div>
+          <div class="shoot-tip">❌ 商品全体・値段・バーコードは<strong>写さなくてOK</strong></div>
+          <div class="shoot-tip">❌ <strong>斜め・遠すぎ・暗い</strong>写真は読み取れません</div>
+        </div>
+
+        <!-- アップロードゾーン -->
+        <div id="upload-zone" class="upload-zone">
+          <div class="upload-emoji">📸</div>
+          <div class="upload-title">原材料表示の写真を添付</div>
+          <div class="btn-row">
+            <button class="btn-attach" onclick="document.getElementById('input-camera').click()">
+              📷 カメラ起動
+            </button>
+            <input id="input-camera" type="file" accept="image/*" capture="environment"
+                   style="display:none" onchange="handleFile(this)">
+
+            <button class="btn-attach sub" onclick="document.getElementById('input-gallery').click()">
+              🖼 ライブラリ
+            </button>
+            <input id="input-gallery" type="file" accept="image/*"
+                   style="display:none" onchange="handleFile(this)">
+          </div>
+        </div>
+
+        <!-- プレビュー -->
+        <div id="preview-zone" class="preview-wrap hidden">
+          <img id="preview-img" class="preview-img" src="" alt="原材料プレビュー">
+          <button class="btn-reset" onclick="resetImage()">✕ 撮り直す</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── テキストパネル ── -->
+    <div id="panel-text" class="hidden">
+      <div class="card">
+        <label class="input-label">原材料テキストを貼り付け</label>
+        <textarea id="text-input" class="textarea" rows="7"
+          placeholder="例）小麦粉、砂糖、食塩、ソルビン酸K、アスパルテーム・L-フェニルアラニン化合物、亜硝酸Na..."></textarea>
+      </div>
+    </div>
+
+    <!-- ── 添加物一覧パネル ── -->
+    <div id="panel-blacklist" class="hidden">
+      <div class="bl-intro">
+        ⚠️ 以下は<strong>アスリートが特に避けるべき添加物</strong>です。<br>
+        「直ちに健康に影響はない」とされる量でも、0.1打を争うプロゴルファーにとっては<strong>パフォーマンス・リカバリーの大敵</strong>になります。
+      </div>
+      <div id="blacklist-render"></div>
+    </div>
+
+    <!-- ── 履歴パネル ── -->
+    <div id="panel-history" class="hidden">
+      <div class="history-header">
+        <div class="history-title">📋 チェック履歴</div>
+        <button class="btn-clear-all" onclick="clearAllHistory()">🗑 全削除</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+
+    <!-- 実行ボタン -->
+    <button class="btn-analyze" id="btn-analyze" onclick="analyze()" disabled>
+      🛡️　添加物チェック実行
+    </button>
+
+    <!-- ローディング -->
+    <div id="loading" class="loading hidden">
+      <span class="loading-spinner">⚙️</span>
+      <div class="loading-text" id="loading-text">AIが原材料を解析中...</div>
+    </div>
+
+    <!-- エラー -->
+    <div id="error-card" class="error-card hidden"></div>
+
+    <!-- 結果 -->
+    <div id="results" class="result-area hidden"></div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="footer-brand">RUIKALOG ATHLETE PERFORMANCE SYSTEM</div>
+    <div style="margin-top:4px;opacity:0.7">Powered by Claude AI × Umaku Co., Ltd.</div>
+  </footer>
+
+</div>
+
+<script>
+/* ============================================================
+   ▼▼▼ Cloudflare Worker の URL をここに貼り付けてください ▼▼▼
+   例: https://clean-fuel.your-name.workers.dev
+   ユーザーにはAPIキーは一切見えません。
+   ============================================================ */
+const WORKER_URL = 'YOUR_CLOUDFLARE_WORKER_URL_HERE';
+
+/* ============================================================
+   ブラックリスト（7カテゴリ）
+   ============================================================ */
+const BLACKLIST = [
+  {
+    key: "リン酸塩",
+    icon: "🦴", color: "#C0392B", organ: "腎臓 · 骨", level: "HIGH",
+    aliases: ["リン酸塩","リン酸Na","リン酸K","リン酸Ca","ポリリン酸","メタリン酸","ピロリン酸"],
+    foods: "コンビニ弁当・ハム・ソーセージ・プロセスチーズ・カップ麺",
+    damage: "血液中のリン濃度が急上昇。腎臓が酷使され、骨からカルシウムを奪い骨密度低下・怪我リスクが上昇します。",
+    recovery: "💧 水分を多めに摂り、バナナ（カリウム）を一緒に食べてリンの排泄を促しましょう。"
+  },
+  {
+    key: "人工甘味料（アスパルテーム）",
+    icon: "🧠", color: "#C0392B", organ: "肝臓 · 腸 · 副腎", level: "HIGH",
+    aliases: ["アスパルテーム"],
+    foods: "カロリーゼロ飲料・プロテインバー・スポーツドリンク",
+    damage: "肝臓の解毒負担が増大。腸内細菌叢を乱し、脳・副腎を混乱させホルモンバランスを崩します。",
+    recovery: "🍊 果汁100%ジュースや無添加食品へ変更推奨。摂った場合はヨーグルトで腸内環境を補修しましょう。"
+  },
+  {
+    key: "人工甘味料（スクラロース）",
+    icon: "🧠", color: "#C0392B", organ: "肝臓 · 腸 · 副腎", level: "HIGH",
+    aliases: ["スクラロース"],
+    foods: "カロリーゼロ飲料・プロテインバー・焼き菓子",
+    damage: "肝臓の解毒負担が増大。腸内細菌叢を乱し、ホルモンバランスを崩します。",
+    recovery: "🍊 果汁100%ジュースや無添加食品へ変更推奨。摂った場合はヨーグルトで腸内環境を補修しましょう。"
+  },
+  {
+    key: "人工甘味料（アセスルファムK）",
+    icon: "🧠", color: "#C0392B", organ: "肝臓 · 腸 · 副腎", level: "HIGH",
+    aliases: ["アセスルファムK","アセスルファムカリウム"],
+    foods: "カロリーゼロ飲料・ガム・スポーツドリンク",
+    damage: "肝臓の解毒負担が増大。腸内細菌叢を乱し、ホルモンバランスを崩します。",
+    recovery: "🍊 果汁100%ジュースや無添加食品へ変更推奨。"
+  },
+  {
+    key: "ソルビン酸（保存料）",
+    icon: "🦠", color: "#D35400", organ: "腸内環境 · 肝臓", level: "MEDIUM",
+    aliases: ["ソルビン酸K","ソルビン酸カリウム","ソルビン酸Na","ソルビン酸ナトリウム","ソルビン酸"],
+    foods: "コンビニのおにぎり・サンドイッチ・練り物・漬物",
+    damage: "腸内の善玉菌を死滅させ、消化吸収能力が低下。栄養素が腸から吸収されなくなります。",
+    recovery: "🥣 食後に乳酸菌サプリかヨーグルトを。キウイ・オートミールで腸内環境を整えましょう。"
+  },
+  {
+    key: "亜硝酸ナトリウム（発色剤）",
+    icon: "☣️", color: "#C0392B", organ: "全身の細胞", level: "HIGH",
+    aliases: ["亜硝酸Na","亜硝酸ナトリウム","亜硝酸塩","亜硝酸"],
+    foods: "ベーコン・ウインナー・ハム・明太子・たらこ",
+    damage: "体内で発がん性物質（ニトロソアミン）に変化するリスク。細胞の酸化でリカバリーが遅れます。",
+    recovery: "🥝 ビタミンC（キウイ・ブロッコリー）を一緒に摂ることで有害物質の生成を抑制できます。"
+  },
+  {
+    key: "サッカリン（人工甘味料）",
+    icon: "🧠", color: "#C0392B", organ: "肝臓 · 腸", level: "HIGH",
+    aliases: ["サッカリン","サッカリンNa","サッカリンナトリウム"],
+    foods: "漬物・清涼飲料水・一部の菓子類",
+    damage: "肝臓の解毒負担が増大。腸内細菌叢を乱します。",
+    recovery: "🍊 果汁100%ジュースや無添加食品へ変更推奨。"
+  }
+];
+
+const SYSTEM_PROMPT = `あなたは食品原材料の表示を読み取る専門AIです。
+
+【絶対に守るルール】
+- 画像や文章に「文字として実際に存在する」添加物だけを報告してください
+- 推測・類推・補完は一切禁止です
+- 「この食品によく含まれる」などの理由で追加することは厳禁です
+- 存在しない文字を報告した場合、このアプリは信頼を失います
+
+【確認対象】以下の文字列が原材料欄に「実際に記載されている」場合のみ detected に追加:
+リン酸塩／リン酸Na／リン酸K／リン酸Ca／ポリリン酸／メタリン酸／ピロリン酸
+アスパルテーム／スクラロース／アセスルファムK／アセスルファムカリウム／サッカリン／サッカリンNa
+ソルビン酸／ソルビン酸K／ソルビン酸カリウム／ソルビン酸Na
+亜硝酸Na／亜硝酸ナトリウム／亜硝酸塩
+
+【出力形式】JSONのみ。マークダウン・コードブロック・説明文は一切不要:
+{"productName":"商品名（読み取れれば。不明なら不明）","imageReadable":true,"ingredientsText":"原材料名の全文をそのまま書き写す","detected":[{"category":"カテゴリ名","exact":"原材料欄に実際に記載されている文字列をそのままコピー"}]}
+
+画像が読み取れない場合は imageReadable を false。
+対象添加物が一つも見つからない場合は detected を空配列 [] にしてください。`;
+
+/* ============================================================
+   State
+   ============================================================ */
+let currentTab  = 'camera';
+let imageBase64 = null;
+let imageMedia  = 'image/jpeg';
+
+/* ============================================================
+   Init
+   ============================================================ */
+window.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('text-input').addEventListener('input', updateBtn);
+  renderBlacklist();
+  updateBtn();
+});
+
+/* ============================================================
+   タブ切替
+   ============================================================ */
+function switchTab(tab) {
+  currentTab = tab;
+  ['camera','text','blacklist','history'].forEach(t => {
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+    document.getElementById('panel-' + t).classList.toggle('hidden', t !== tab);
+  });
+  const isInputTab = tab === 'camera' || tab === 'text';
+  document.getElementById('btn-analyze').classList.toggle('hidden', !isInputTab);
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('error-card').classList.add('hidden');
+  if (tab === 'history') renderHistory();
+  updateBtn();
+}
+
+/* ============================================================
+   ファイル処理
+   ============================================================ */
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const valid = ['image/jpeg','image/png','image/gif','image/webp'];
+  imageMedia = valid.includes(file.type) ? file.type : 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageBase64 = e.target.result.split(',')[1];
+    document.getElementById('preview-img').src = e.target.result;
+    document.getElementById('upload-zone').classList.add('hidden');
+    document.getElementById('preview-zone').classList.remove('hidden');
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('error-card').classList.add('hidden');
+    updateBtn();
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetImage() {
+  imageBase64 = null;
+  document.getElementById('preview-zone').classList.add('hidden');
+  document.getElementById('upload-zone').classList.remove('hidden');
+  document.getElementById('input-camera').value  = '';
+  document.getElementById('input-gallery').value = '';
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('error-card').classList.add('hidden');
+  updateBtn();
+}
+
+/* ============================================================
+   UI ヘルパー
+   ============================================================ */
+function updateBtn() {
+  const ok = currentTab === 'camera'
+    ? !!imageBase64
+    : document.getElementById('text-input').value.trim().length > 0;
+  document.getElementById('btn-analyze').disabled = !ok;
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-card');
+  el.innerHTML = msg;
+  el.classList.remove('hidden');
+}
+
+/* ============================================================
+   添加物一覧レンダリング
+   ============================================================ */
+function renderBlacklist() {
+  const container = document.getElementById('blacklist-render');
+  container.innerHTML = BLACKLIST.map(item => `
+    <div class="bl-item" style="border-left-color:${item.color}">
+      <div class="bl-item-header">
+        <div class="bl-item-icon">${item.icon}</div>
+        <div>
+          <div class="bl-item-name" style="color:${item.color}">${esc(item.key)}</div>
+          <span class="bl-item-organ" style="background:${item.level==='HIGH'?'#C0392B':'#D35400'}">
+            🫀 ${esc(item.organ)}　${item.level==='HIGH'?'高リスク':'中リスク'}
+          </span>
+        </div>
+      </div>
+      <div class="bl-aliases">
+        <strong>表示名：</strong>${item.aliases.map(a=>`<code>${esc(a)}</code>`).join('・')}
+      </div>
+      <div class="bl-foods">🏪 多く含まれる食品：${esc(item.foods)}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   API 呼び出し（Cloudflare Worker 経由）
+   ============================================================ */
+async function analyze() {
+  document.getElementById('loading').classList.remove('hidden');
+  document.getElementById('loading-text').textContent = 'AIが原材料を解析中...';
+  document.getElementById('btn-analyze').disabled = true;
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('error-card').classList.add('hidden');
+
+  try {
+    let messages;
+    if (currentTab === 'camera' && imageBase64) {
+      messages = [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: imageMedia, data: imageBase64 } },
+          { type: 'text', text: 'この食品の原材料表示を分析してください。JSONのみで返答してください。' }
+        ]
+      }];
+    } else {
+      const txt = document.getElementById('text-input').value.trim();
+      messages = [{
+        role: 'user',
+        content: `以下の原材料を分析してください。JSONのみで返答してください。\n\n原材料: ${txt}`
+      }];
+    }
+
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ max_tokens: 1000, system: SYSTEM_PROMPT, messages })
+    });
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const raw    = (data.content.find(b => b.type === 'text')?.text || '').replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(raw);
+
+    if (parsed.imageReadable === false) {
+      showError('⚠️ 原材料表示が読み取れませんでした。<br><br>・明るい場所で「原材料名」の欄だけ接写してください<br>・ピントが合ってからシャッターを切ってください<br>・うまくいかない場合は「テキスト」タブで直接入力してください');
+      return;
+    }
+
+    renderResults(parsed);
+
+  } catch(e) {
+    showError('❌ エラー: ' + e.message + '<br><br>WORKER_URL が正しく設定されているか確認してください。');
+  } finally {
+    document.getElementById('loading').classList.add('hidden');
+    updateBtn();
+  }
+}
+
+/* ============================================================
+   結果レンダリング
+   ============================================================ */
+function renderResults(parsed) {
+  const detected = (parsed.detected || []).map(item => {
+    const match = BLACKLIST.find(b =>
+      b.key.includes(item.category) ||
+      item.category.includes(b.key.split('（')[0]) ||
+      b.aliases.some(a => (item.exact||'').includes(a))
+    );
+    return match ? { ...item, ...match } : item;
+  });
+
+  const isClean = detected.length === 0;
+  const hasHigh = detected.some(d => d.level === 'HIGH');
+  const cls     = isClean ? 'status-clean' : hasHigh ? 'status-high' : 'status-mid';
+
+  let html = `<div class="status-banner ${cls}">
+    <div class="status-icon">${isClean ? '✅' : '⚠️'}</div>
+    <div>
+      <div class="status-title">${isClean ? 'クリーン！要注意添加物なし' : `要注意添加物 ${detected.length} 種類を検出`}</div>
+      ${parsed.productName && parsed.productName !== '不明' ? `<div class="status-sub">${esc(parsed.productName)}</div>` : ''}
+    </div>
+  </div>`;
+
+  detected.forEach(item => {
+    html += `
+    <div class="additive-card" style="border-left-color:${item.color||'#C0392B'}">
+      <div class="add-header">
+        <div class="add-icon">${item.icon||'⚠️'}</div>
+        <div class="add-meta">
+          <div class="add-name" style="color:${item.color||'#C0392B'}">${esc(item.key||item.category)}</div>
+          <div class="add-exact">検出表記：${esc(item.exact)}</div>
+        </div>
+        <div class="level-badge" style="background:${item.level==='HIGH'?'#C0392B':'#D35400'}">
+          ${item.level === 'HIGH' ? '高リスク' : '中リスク'}
+        </div>
+      </div>
+      <div class="organ-tag">🫀 負担臓器：<strong>${esc(item.organ||'—')}</strong></div>
+      <div class="damage-text">🔴 ${esc(item.damage||'内臓への負担が懸念されます。')}</div>
+      <div class="recovery-box">
+        <div class="recovery-label">⚡ リカバリーアドバイス</div>
+        <div class="recovery-text">${esc(item.recovery||'水分を多めに摂り、野菜・果物で栄養補給しましょう。')}</div>
+      </div>
+    </div>`;
+  });
+
+  if (isClean) {
+    html += `<div class="clean-card">
+      <div class="clean-icon">💚</div>
+      <div class="clean-title">この食品は安心して食べられます</div>
+      <div class="clean-text">7種類の要注意添加物は検出されませんでした。<br>クリーンな食品選択で最高のパフォーマンスへ！</div>
+    </div>`;
+  }
+
+  const c = document.getElementById('results');
+  c.innerHTML = html;
+  c.classList.remove('hidden');
+  c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  saveHistory(detected, parsed);
+}
+
+/* ============================================================
+   履歴
+   ============================================================ */
+const HISTORY_KEY = 'cf_history';
+
+function saveHistory(detected, parsed) {
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const entry = {
+    id: now.getTime(),
+    date: `${now.getFullYear()}/${pad(now.getMonth()+1)}/${pad(now.getDate())}`,
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    inputType: currentTab,
+    productName: parsed.productName || '不明',
+    isClean: detected.length === 0,
+    detected: detected.map(d => ({
+      key: d.key||d.category, exact: d.exact, icon: d.icon||'⚠️',
+      color: d.color||'#C0392B', level: d.level||'HIGH',
+      organ: d.organ||'', recovery: d.recovery||''
+    }))
+  };
+  let h = loadHistoryRaw();
+  h.unshift(entry);
+  if (h.length > 30) h = h.slice(0,30);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(h));
+}
+
+function loadHistoryRaw() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }
+  catch { return []; }
+}
+
+function clearAllHistory() {
+  if (!confirm('履歴を全件削除しますか？')) return;
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+}
+
+function deleteHistoryEntry(id) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(loadHistoryRaw().filter(e=>e.id!==id)));
+  renderHistory();
+}
+
+function toggleHistDetail(id) {
+  const det  = document.getElementById('hdet-'+id);
+  const chev = document.getElementById('hchev-'+id);
+  if (!det) return;
+  const open = det.classList.contains('open');
+  det.classList.toggle('open', !open);
+  chev.classList.toggle('open', !open);
+}
+
+function renderHistory() {
+  const history = loadHistoryRaw();
+  const container = document.getElementById('history-list');
+  if (history.length === 0) {
+    container.innerHTML = `<div class="history-empty">
+      <div class="history-empty-icon">📭</div>
+      <div class="history-empty-text">まだチェック履歴がありません。<br>写真またはテキストで判定すると<br>ここに記録されます。</div>
+    </div>`;
+    return;
+  }
+  container.innerHTML = history.map(entry => {
+    const borderColor = entry.isClean ? '#22C55E' : entry.detected.some(d=>d.level==='HIGH') ? '#C0392B' : '#D35400';
+    const dotClass    = entry.isClean ? 'dot-clean' : entry.detected.some(d=>d.level==='HIGH') ? 'dot-danger' : 'dot-warn';
+    const badges = entry.isClean
+      ? `<span class="hist-badge hist-badge-clean">クリーン</span>`
+      : entry.detected.map(d=>`<span class="hist-badge" style="background:${d.color}">${esc(d.key)}</span>`).join('');
+    const rows = entry.isClean
+      ? `<div class="hist-clean-row">💚 要注意添加物は検出されませんでした</div>`
+      : entry.detected.map(d=>`
+          <div class="hist-additive-row">
+            <div class="hist-add-icon">${d.icon}</div>
+            <div class="hist-add-info">
+              <div class="hist-add-name" style="color:${d.color}">${esc(d.key)}</div>
+              <div class="hist-add-exact">検出：${esc(d.exact)}</div>
+              ${d.organ?`<div class="hist-add-exact">🫀 ${esc(d.organ)}</div>`:''}
+              ${d.recovery?`<div class="hist-recovery">⚡ ${esc(d.recovery)}</div>`:''}
+            </div>
+          </div>`).join('');
+    return `
+      <div class="hist-card" style="border-left-color:${borderColor}">
+        <div class="hist-summary" onclick="toggleHistDetail(${entry.id})">
+          <div class="hist-status-dot ${dotClass}">${entry.isClean?'✅':'⚠️'}</div>
+          <div class="hist-meta">
+            <div class="hist-product">${esc(entry.productName||'—')}</div>
+            <div class="hist-date">${entry.date} ${entry.time}　${entry.inputType==='camera'?'📷':'✏️'}</div>
+            <div class="hist-badges">${badges}</div>
+          </div>
+          <div class="hist-chevron" id="hchev-${entry.id}">›</div>
+        </div>
+        <div class="hist-detail" id="hdet-${entry.id}">
+          ${rows}
+          <button class="hist-delete-btn" onclick="deleteHistoryEntry(${entry.id})">🗑 この履歴を削除</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
